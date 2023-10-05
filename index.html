@@ -1,0 +1,84 @@
+<html>
+  <body>
+    <div id="grid"></div>
+  </body>
+  <script>
+    const NUM_ROWS = 21;
+    const NUM_COLS = 21;
+
+    const snakeCoordinates = [[11, 11]];
+    const foodCoordinate = createFood();
+    const direction = 0;
+    const directions = [
+      // Up 
+      [20, 0],
+      // Down
+      [1, 0],
+      // Left
+      [0, 20],
+      // Right
+      [0, 1],
+    ];
+
+    setInterval(() => {
+      moveSnake(direction);
+      renderGrid(getGameGrid(snakeCoordinates));
+    }, 500)
+
+    function createFood() {
+      return [
+        Math.floor(Math.random() * NUM_ROWS),
+        Math.floor(Math.random() * NUM_COLS),
+      ]
+    }
+
+    function moveSnake(direction) {
+      const lastCell = snakeCoordinates.pop();
+      const moveCell = snakeCoordinates.length > 0 ? snakeCoordinates[0] : lastCell;
+      snakeCoordinates.unshift(
+        [(moveCell[0] + directions[direction][0]) % NUM_ROWS, 
+          (moveCell[1] + directions[direction][1])% NUM_COLS]
+      )
+    }
+
+    function getFreshGrid() {
+      const virtualGrid = [];
+      for (let i = 0; i < NUM_ROWS; ++i) {
+        virtualGrid.push([]);
+        for (let j = 0; j < NUM_COLS; ++j) {
+          virtualGrid[i].push(false);
+        }
+      } 
+      return virtualGrid;
+    }
+
+    function getGameGrid(snakeCoordinates) {
+      const gameGrid = getFreshGrid();
+      snakeCoordinates.forEach(([x, y]) => {
+       if (x >= 0 && x < gameGrid.length && 
+       y >= 0 && y < gameGrid[0].length) {
+        gameGrid[x][y] = true;
+       } 
+      });
+      return gameGrid;
+    }
+
+    function renderGrid(virtualGrid) {
+      const uiGrid = document.getElementById("grid");
+      uiGrid.textContent = '';
+      virtualGrid.forEach((virtualRow) => {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.flexDirection = 'row';
+        virtualRow.forEach((virtualCell) => {
+          const node = document.createElement('div');
+          node.style.backgroundColor = virtualCell ? 'black' : 'white';
+          node.style.height = 40;
+          node.style.width = 40;
+          row.appendChild(node)
+        })
+        uiGrid.appendChild(row);
+      });
+    }
+  </script>
+</html>
