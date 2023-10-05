@@ -6,7 +6,7 @@
     const NUM_ROWS = 21;
     const NUM_COLS = 21;
 
-    const snakeCoordinates = [[11, 11]];
+    let snakeCoordinates = [[11, 11]];
     let foodCoordinate = [4, 4];
     let direction = 0;
     const directions = [
@@ -33,13 +33,41 @@
       }
     });
 
-    setInterval(() => {
-      moveSnake(direction);
-      renderGrid(getGameGrid());
-      if (!foodCoordinate) {
-        console.log('won!');
+    const startGame = () => setInterval(() => {
+      const moveFailure = !moveSnake(direction);
+      if (moveFailure) {
+        clearInterval(gameInterval);
+        renderEndGame('You lose');
+        return;
       }
+      const isWon = !foodCoordinate;
+      if (isWon) {
+        clearInterval(gameInterval);
+        renderEndGame('You win!')
+        return;
+      }
+      renderGrid(getGameGrid());
     }, 100)
+    
+    let gameInterval = startGame(); 
+
+    function renderEndGame(message) {
+      const uiGrid = document.getElementById("grid");
+      uiGrid.textContent = '';
+      const winMessage = document.createElement('div');
+      winMessage.textContent = message;
+      const repeatGame = document.createElement('button');
+      repeatGame.textContent = 'Play again'
+      repeatGame.onclick = () => {
+        snakeCoordinates = [[11, 11]];
+        foodCoordinate = [4, 4];
+        direction = 0;
+        gameInterval = startGame();
+      }
+      uiGrid.appendChild(winMessage);
+      uiGrid.appendChild(repeatGame);
+      console.log(winMessage, repeatGame, uiGrid);
+    }
 
     function createFood() {
      const grid = getGameGrid(); 
@@ -59,14 +87,20 @@
     }
 
     function moveSnake(direction) {
-      const lastCell = snakeCoordinates.pop();
+      const lastCell = snakeCoordinates[snakeCoordinates.length - 1];
       const moveCell = snakeCoordinates.length > 0 ? snakeCoordinates[0] : lastCell;
       const newCell = createNewCell(moveCell); 
+      const collision = snakeCoordinates.find(([x, y]) =>
+        x == newCell[0] && y == newCell[1]
+      );
+      if (collision) return false;
+      snakeCoordinates.pop();
       snakeCoordinates.unshift(newCell);
       if (newCell[0] == foodCoordinate[0] && newCell[1] == foodCoordinate[1]) {
         snakeCoordinates.push(lastCell);
         foodCoordinate = createFood();
       }
+      return true;
     }
 
     function createNewCell(moveCell) {
